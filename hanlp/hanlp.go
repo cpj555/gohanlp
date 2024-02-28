@@ -11,37 +11,40 @@ import (
 	"github.com/xxjwxc/public/tools"
 )
 
-type hanlp struct {
+type Hanlp struct {
 	opts Options
 }
 
-// HanLPClient build client
-func HanLPClient(opts ...Option) *hanlp {
-	options := Options{ // default
+// HanLPClient 新建客户端
+func HanLPClient(opts ...Option) *Hanlp {
+	options := Options{ // 默认值
 		URL:      "https://www.hanlp.com/api",
 		Language: "zh",
 	}
 
-	for _, f := range opts { // deal option
+	for _, f := range opts { // 执行自定义option
 		f(&options)
 	}
 
-	return &hanlp{
+	return &Hanlp{
 		opts: options,
 	}
 }
 
-// Parse deal
-func (h *hanlp) Parse(text string, opts ...Option) (string, error) {
+// Parse 解析获取
+/*
+opts 是临时参数部分
+*/
+func (h *Hanlp) Parse(text string, opts ...Option) (string, error) {
 	options := h.opts
-	for _, f := range opts { // option
+	for _, f := range opts { // 执行自定义option
 		f(&options)
 	}
 
 	req := &HanReq{
-		Text:      text,
-		Language:  options.Language, // (zh,mnt)
-		Tasks:     options.Tasks,
+		Text:      text,             // 文本
+		Language:  options.Language, // 语言(zh,mnl)
+		Tasks:     options.Tasks,    // 任务列表()
 		SkipTasks: options.SkipTasks,
 	}
 	b, err := myhttp.PostHeader(options.URL+"/parse", tools.JSONDecode(req), getHeader(options))
@@ -53,17 +56,20 @@ func (h *hanlp) Parse(text string, opts ...Option) (string, error) {
 	return string(b), nil
 }
 
-// Parse parse object
-func (h *hanlp) ParseObj(text string, opts ...Option) (*HanResp, error) {
+// Parse 解析获取
+/*
+opts 是临时参数部分
+*/
+func (h *Hanlp) ParseObj(text string, opts ...Option) (*HanResp, error) {
 	options := h.opts
-	for _, f := range opts { // option
+	for _, f := range opts { // 执行自定义option
 		f(&options)
 	}
 
 	req := &HanReq{
-		Text:      text,
-		Language:  options.Language, // (zh,mnt)
-		Tasks:     options.Tasks,
+		Text:      text,             // 文本
+		Language:  options.Language, // 语言(zh,mnl)
+		Tasks:     options.Tasks,    // 任务列表()
 		SkipTasks: options.SkipTasks,
 	}
 	b, err := myhttp.PostHeader(options.URL+"/parse", tools.JSONDecode(req), getHeader(options))
@@ -75,22 +81,25 @@ func (h *hanlp) ParseObj(text string, opts ...Option) (*HanResp, error) {
 	return marshalHanResp(b)
 }
 
-// ParseAny parse any request parms
-func (h *hanlp) ParseAny(text string, resp interface{}, opts ...Option) error {
+// ParseAny 解析获取
+/*
+opts 是临时参数部分
+*/
+func (h *Hanlp) ParseAny(text string, resp interface{}, opts ...Option) error {
 	reqType := reflect.TypeOf(resp)
 	if reqType.Kind() != reflect.Ptr {
 		return fmt.Errorf("req type not a pointer:%v", reqType)
 	}
 
 	options := h.opts
-	for _, f := range opts { // option
+	for _, f := range opts { // 执行自定义option
 		f(&options)
 	}
 
 	req := &HanReq{
-		Text:      text,
-		Language:  options.Language, // (zh,mnt)
-		Tasks:     options.Tasks,
+		Text:      text,             // 文本
+		Language:  options.Language, // 语言(zh,mnl)
+		Tasks:     options.Tasks,    // 任务列表()
 		SkipTasks: options.SkipTasks,
 	}
 	b, err := myhttp.PostHeader(options.URL+"/parse", tools.JSONDecode(req), getHeader(options))
@@ -118,7 +127,7 @@ func (h *hanlp) ParseAny(text string, resp interface{}, opts ...Option) error {
 	return nil
 }
 
-// marshal obj
+// 解析obj
 func marshalHanResp(b []byte) (*HanResp, error) {
 	var hr hanResp
 	err := json.Unmarshal(b, &hr)
@@ -134,7 +143,7 @@ func marshalHanResp(b []byte) (*HanResp, error) {
 		Pos863:    hr.Pos863,
 	}
 
-	// ner/pku
+	// ner/pku 命名实体识别
 	for _, v := range hr.NerPku {
 		var tmp []NerTuple
 		for _, v1 := range v {
@@ -142,9 +151,9 @@ func marshalHanResp(b []byte) (*HanResp, error) {
 			case []interface{}:
 				{
 					tmp = append(tmp, NerTuple{
-						Entity: t[0].(string),
-						Type:   t[1].(string),
-						Begin:  int(t[2].(float64)),
+						Entity: t[0].(string),       // 实体
+						Type:   t[1].(string),       // 类型
+						Begin:  int(t[2].(float64)), // 开始点
 						End:    int(t[3].(float64)),
 					})
 				}
@@ -156,7 +165,7 @@ func marshalHanResp(b []byte) (*HanResp, error) {
 	}
 	// ----------end
 
-	// ner/msra
+	// ner/msra 命名实体识别
 	for _, v := range hr.NerMsra {
 		var tmp []NerTuple
 		for _, v1 := range v {
@@ -164,9 +173,9 @@ func marshalHanResp(b []byte) (*HanResp, error) {
 			case []interface{}:
 				{
 					tmp = append(tmp, NerTuple{
-						Entity: t[0].(string),
-						Type:   t[1].(string),
-						Begin:  int(t[2].(float64)),
+						Entity: t[0].(string),       // 实体
+						Type:   t[1].(string),       // 类型
+						Begin:  int(t[2].(float64)), // 开始点
 						End:    int(t[3].(float64)),
 					})
 				}
@@ -178,7 +187,7 @@ func marshalHanResp(b []byte) (*HanResp, error) {
 	}
 	// ----------end
 
-	// ner/ontonotes
+	// ner/ontonotes 命名实体识别
 	for _, v := range hr.NerOntonotes {
 		var tmp []NerTuple
 		for _, v1 := range v {
@@ -186,9 +195,9 @@ func marshalHanResp(b []byte) (*HanResp, error) {
 			case []interface{}:
 				{
 					tmp = append(tmp, NerTuple{
-						Entity: t[0].(string),
-						Type:   t[1].(string),
-						Begin:  int(t[2].(float64)),
+						Entity: t[0].(string),       // 实体
+						Type:   t[1].(string),       // 类型
+						Begin:  int(t[2].(float64)), // 开始点
 						End:    int(t[3].(float64)),
 					})
 				}
@@ -200,7 +209,7 @@ func marshalHanResp(b []byte) (*HanResp, error) {
 	}
 	// ----------end
 
-	// srl
+	// srl 语义角色标注
 	for _, v := range hr.Srl {
 		var tmp [][]SrlTuple
 		for _, v1 := range v {
@@ -210,9 +219,9 @@ func marshalHanResp(b []byte) (*HanResp, error) {
 				case []interface{}:
 					{
 						tmp1 = append(tmp1, SrlTuple{
-							ArgPred: t[0].(string),
-							Label:   t[1].(string),
-							Begin:   int(t[2].(float64)),
+							ArgPred: t[0].(string),       // 参数
+							Label:   t[1].(string),       // 标签
+							Begin:   int(t[2].(float64)), // 开始点
 							End:     int(t[3].(float64)),
 						})
 					}
@@ -226,7 +235,7 @@ func marshalHanResp(b []byte) (*HanResp, error) {
 	}
 	// -------------end
 
-	// dep
+	// dep 依存句法分析
 	for _, v := range hr.Dep {
 		var tmp []DepTuple
 		for _, v1 := range v {
@@ -234,8 +243,8 @@ func marshalHanResp(b []byte) (*HanResp, error) {
 			case []interface{}:
 				{
 					tmp = append(tmp, DepTuple{
-						Head:     int(t[0].(float64)),
-						Relation: t[1].(string),
+						Head:     int(t[0].(float64)), // 头
+						Relation: t[1].(string),       // 关系
 					})
 				}
 			default:
@@ -245,7 +254,7 @@ func marshalHanResp(b []byte) (*HanResp, error) {
 		resp.Dep = append(resp.Dep, tmp)
 	}
 	// ------------end
-	// sdp
+	// sdp 语义依存分析
 	for _, v := range hr.Sdp {
 		var tmp [][]DepTuple
 		for _, v1 := range v {
@@ -255,8 +264,8 @@ func marshalHanResp(b []byte) (*HanResp, error) {
 				case []interface{}:
 					{
 						tmp1 = append(tmp1, DepTuple{
-							Head:     int(t[0].(float64)),
-							Relation: t[1].(string),
+							Head:     int(t[0].(float64)), // 开始点
+							Relation: t[1].(string),       // 实体
 						})
 					}
 				default:
@@ -272,7 +281,6 @@ func marshalHanResp(b []byte) (*HanResp, error) {
 	resp.Con = dealCon(hr.Con)
 	// ------------end
 
-	// Con          []interface{}
 	return resp, nil
 }
 
@@ -300,7 +308,7 @@ func dealCon(info []interface{}) (re []ConTuple) {
 			if len(info) == 2 {
 				tmp1.Value = dealCon(info[1].([]interface{}))
 			}
-			// else { // It doesn't exist in theory
+			// else { // 理论上不存在
 			// 	fmt.Println(info)
 			// }
 			re = append(re, tmp1)
@@ -316,4 +324,31 @@ func dealCon(info []interface{}) (re []ConTuple) {
 	}
 
 	return re
+}
+
+// KeyphraseExtraction 关键词提取
+/*
+opts 是临时参数部分
+*/
+func (h *Hanlp) KeyphraseExtraction(text string, opts ...Option) (map[string]float64, error) {
+	options := h.opts
+	for _, f := range opts { // 执行自定义option
+		f(&options)
+	}
+
+	req := &HanReq{
+		Text:      text,             // 文本
+		Language:  options.Language, // 语言(zh,mnl)
+		Tasks:     options.Tasks,    // 任务列表()
+		SkipTasks: options.SkipTasks,
+	}
+	b, err := myhttp.PostHeader(options.URL+"/keyphrase_extraction", tools.JSONDecode(req), getHeader(options))
+	if err != nil {
+		mylog.Error(err)
+		return nil, err
+	}
+
+	mp := make(map[string]float64)
+	tools.JSONEncode(string(b), &mp)
+	return mp, err
 }
